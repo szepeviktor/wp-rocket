@@ -308,7 +308,9 @@ class Critical_CSS_Subscriber implements Subscriber_Interface {
 			return;
 		}
 
-		if ( ! $this->critical_css->get_current_page_critical_css() ) {
+		$is_mobile = $this->critical_css->should_mobile_critical_css() && $this->critical_css->is_mobile();
+
+		if ( ! $this->critical_css->get_current_page_critical_css( $is_mobile ) ) {
 			return;
 		}
 
@@ -370,7 +372,7 @@ JS;
 	 */
 	public function insert_critical_css_buffer( $buffer ) {
 		if ( ( defined( 'DONOTROCKETOPTIMIZE' ) && DONOTROCKETOPTIMIZE ) || ( defined( 'DONOTASYNCCSS' ) && DONOTASYNCCSS ) ) {
-			return;
+			return $buffer;
 		}
 
 		if ( ! $this->options->get( 'async_css' ) ) {
@@ -381,7 +383,9 @@ JS;
 			return $buffer;
 		}
 
-		$current_page_cpcss = $this->critical_css->get_current_page_critical_css();
+		$is_mobile = $this->critical_css->should_mobile_critical_css() && $this->critical_css->is_mobile();
+
+		$current_page_cpcss = $this->critical_css->get_current_page_critical_css( $is_mobile );
 
 		if ( ! $current_page_cpcss ) {
 			return $buffer;
@@ -415,7 +419,7 @@ JS;
 	 */
 	public function async_css( $buffer ) {
 		if ( ( defined( 'DONOTROCKETOPTIMIZE' ) && DONOTROCKETOPTIMIZE ) || ( defined( 'DONOTASYNCCSS' ) && DONOTASYNCCSS ) ) {
-			return;
+			return $buffer;
 		}
 
 		if ( ! $this->options->get( 'async_css' ) ) {
@@ -426,7 +430,9 @@ JS;
 			return $buffer;
 		}
 
-		if ( ! $this->critical_css->get_current_page_critical_css() ) {
+		$is_mobile = $this->critical_css->should_mobile_critical_css() && $this->critical_css->is_mobile();
+
+		if ( ! $this->critical_css->get_current_page_critical_css( $is_mobile ) ) {
 			return $buffer;
 		}
 
