@@ -29,6 +29,16 @@ class Critical_CSS {
 	public $items = [];
 
 	/**
+	 * Mobile Detect Library instance
+	 *
+	 * @var    \Rocket_Mobile_Detect
+	 * @since  3.5
+	 * @access private
+	 * @author Grégory Viguier
+	 */
+	private $mobile_detect;
+
+	/**
 	 * Path to the critical CSS directory
 	 *
 	 * @since 2.11
@@ -38,20 +48,42 @@ class Critical_CSS {
 	private $critical_css_path;
 
 	/**
+	 * Tells if a mobile device should get dedicated critical CSS.
+	 *
+	 * @since  3.5
+	 * @var    bool
+	 * @see    $this->should_mobile_critical_css()
+	 * @access private
+	 */
+	private $mobile_critical_css;
+
+	/**
+	 * Tells if the current user uses a mobile browser.
+	 *
+	 * @since  3.5
+	 * @var    bool
+	 * @see    $this->is_mobile()
+	 * @access private
+	 */
+	private $is_mobile;
+
+	/**
 	 * Class constructor.
 	 *
 	 * @since 2.11
 	 * @author Remy Perona
 	 *
-	 * @param Critical_CSS_Generation $process Background process instance.
+	 * @param Critical_CSS_Generation $process       Background process instance.
+	 * @param \Rocket_Mobile_Detect   $mobile_detect Mobile Detect Library instance.
 	 */
-	public function __construct( Critical_CSS_Generation $process ) {
+	public function __construct( Critical_CSS_Generation $process, \Rocket_Mobile_Detect $mobile_detect ) {
 		$this->process = $process;
 		$this->items[] = [
 			'type' => 'front_page',
 			'url'  => home_url( '/' ),
 		];
 
+		$this->mobile_detect     = $mobile_detect;
 		$this->critical_css_path = WP_ROCKET_CRITICAL_CSS_PATH . get_current_blog_id() . '/';
 	}
 
@@ -84,7 +116,7 @@ class Critical_CSS {
 		 *
 		 * @param bool $do_rocket_critical_css_generation True to activate the automatic generation, false to prevent it.
 		 */
-		if ( ! apply_filters( 'do_rocket_critical_css_generation', true ) ) { // WPCS: prefix ok.
+		if ( ! apply_filters( 'do_rocket_critical_css_generation', true ) ) { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 			return;
 		}
 
@@ -97,6 +129,8 @@ class Critical_CSS {
 		$this->stop_generation();
 
 		$this->set_items();
+
+		$this->set_mobile_items();
 
 		array_map( [ $this->process, 'push_to_queue' ], $this->items );
 
@@ -193,7 +227,7 @@ class Critical_CSS {
 				'fusion_template',
 				'blocks',
 				'jet-woo-builder',
-				'fl-builder-template'
+				'fl-builder-template',
 			]
 		);
 
@@ -201,7 +235,7 @@ class Critical_CSS {
 		$post_types = esc_sql( $post_types );
 		$post_types = "'" . implode( "','", $post_types ) . "'";
 
-		$rows = $wpdb->get_results( // WPCS: unprepared SQL ok.
+		$rows = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 			"
 		    SELECT MAX(ID) as ID, post_type
 		    FROM (
@@ -258,7 +292,7 @@ class Critical_CSS {
 		$taxonomies = esc_sql( $taxonomies );
 		$taxonomies = "'" . implode( "','", $taxonomies ) . "'";
 
-		$rows = $wpdb->get_results( // WPCS: unprepared SQL ok.
+		$rows = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 			"
 			SELECT MAX( term_id ) AS ID, taxonomy
 			FROM (
@@ -320,43 +354,123 @@ class Critical_CSS {
 	}
 
 	/**
-	 * Determines if critical CSS is available for the current page
+	 * Sets the items dedicated to mobile devices, for which we generate critical CSS.
 	 *
-	 * @since 2.11
+	 * @since  3.5
+	 * @access private
+	 * @author Grégory Viguier
+	 */
+	private function set_mobile_items() {
+		if ( ! $this->items ) {
+			return;
+		}
+
+		if ( ! $this->should_mobile_critical_css() ) {
+			return;
+		}
+
+		// Use the "non-mobile" items to add new "mobile" items.
+		foreach ( $this->items as $i => $item ) {
+			$item['mobile'] = 1;
+
+			$this->items[] = $item;
+		}
+	}
+
+	/**
+	 * Determines if critical CSS is available for the current page.
+	 *
+	 * @since  2.11
+	 * @since  3.5 Added $is_mobile parameter.
+	 * @access public
 	 * @author Remy Perona
 	 *
-	 * @return bool|string False if critical CSS file doesn't exist, file path otherwise
+	 * @param  bool $is_mobile True to get the path to critical CSS dedicated to mobile. False by default.
+	 * @return bool|string     False or 'fallback' if critical CSS file doesn't exist, file path otherwise.
 	 */
-	public function get_current_page_critical_css() {
-		$name = 'front_page.css';
+	public function get_current_page_critical_css( $is_mobile = false ) {
+		$suffix = $is_mobile ? $this->process->get_mobile_file_suffix() : '';
+		$name   = 'front_page' . $suffix . '.css';
 
 		if ( is_home() && 'page' === get_option( 'show_on_front' ) ) {
-			$name = 'home.css';
+			$name = 'home' . $suffix . '.css';
 		} elseif ( is_front_page() ) {
-			$name = 'front_page.css';
+			$name = 'front_page' . $suffix . '.css';
 		} elseif ( is_category() ) {
-			$name = 'category.css';
+			$name = 'category' . $suffix . '.css';
 		} elseif ( is_tag() ) {
-			$name = 'post_tag.css';
+			$name = 'post_tag' . $suffix . '.css';
 		} elseif ( is_tax() ) {
 			$taxonomy = get_queried_object()->taxonomy;
-			$name     = $taxonomy . '.css';
+			$name     = $taxonomy . $suffix . '.css';
 		} elseif ( is_singular() ) {
 			$post_type = get_post_type();
-			$name      = $post_type . '.css';
+			$name      = $post_type . $suffix . '.css';
 		}
 
 		$file = $this->critical_css_path . $name;
 
-		if ( ! rocket_direct_filesystem()->is_readable( $file ) ) {
-			$critical_css = get_rocket_option( 'critical_css', '' );
-			if ( ! empty( $critical_css ) ) {
-				return 'fallback';
-			}
-
-			return false;
+		if ( rocket_direct_filesystem()->is_readable( $file ) ) {
+			return $file;
 		}
 
-		return $file;
+		$critical_css = get_rocket_option( 'critical_css', '' );
+
+		if ( ! empty( $critical_css ) ) {
+			return 'fallback';
+		}
+
+		return false;
+	}
+
+	/**
+	 * Tells if we should use a dedicated critical CSS file.
+	 *
+	 * @since  3.5
+	 * @access public
+	 * @author Grégory Viguier
+	 *
+	 * @return bool
+	 */
+	public function should_mobile_critical_css() {
+		if ( isset( $this->mobile_critical_css ) ) {
+			return $this->mobile_critical_css;
+		}
+
+		$this->mobile_critical_css = get_rocket_option( 'cache_mobile' ) && get_rocket_option( 'do_caching_mobile_files' ) && get_rocket_option( 'mobile_critical_css_enabled' );
+		return $this->mobile_critical_css;
+	}
+
+	/**
+	 * Tells if the current user uses a mobile browser.
+	 * This is tightly coupled with desktop/mobile cache files.
+	 *
+	 * @since  3.5
+	 * @access public
+	 * @see    \WP_Rocket\Buffer\Cache->maybe_mobile_filename()
+	 * @author Grégory Viguier
+	 *
+	 * @return bool
+	 */
+	public function is_mobile() {
+		if ( isset( $this->is_mobile ) ) {
+			return $this->is_mobile;
+		}
+
+		/** This filter is documented in inc/functions/files.php */
+		$cache_mobile_files_tablet = apply_filters( 'rocket_cache_mobile_files_tablet', 'desktop' );
+
+		if ( 'desktop' === $cache_mobile_files_tablet && $this->mobile_detect->isMobile() && ! $this->mobile_detect->isTablet() ) {
+			$this->is_mobile = true;
+			return $this->is_mobile;
+		}
+
+		if ( 'mobile' === $cache_mobile_files_tablet && ( $this->mobile_detect->isMobile() || $this->mobile_detect->isTablet() ) ) {
+			$this->is_mobile = true;
+			return $this->is_mobile;
+		}
+
+		$this->is_mobile = false;
+		return $this->is_mobile;
 	}
 }
