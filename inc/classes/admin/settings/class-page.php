@@ -2036,6 +2036,7 @@ class Page {
 				'cloudflare_old_settings',
 				'sitemap_preload_url_crawl',
 				'cache_ssl',
+				'mobile_critical_css_enabled',
 			]
 		);
 	}

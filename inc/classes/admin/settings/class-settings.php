@@ -310,7 +310,8 @@ class Settings {
 		$input['async_css'] = ! empty( $input['async_css'] ) ? 1 : 0;
 
 		// Option: Critical CSS.
-		$input['critical_css'] = ! empty( $input['critical_css'] ) ? str_replace( [ '<style>', '</style>' ], '', wp_kses( $input['critical_css'], [ "\'", '\"' ] ) ) : '';
+		$input['critical_css']                = ! empty( $input['critical_css'] ) ? str_replace( [ '<style>', '</style>' ], '', wp_kses( $input['critical_css'], [ "\'", '\"' ] ) ) : '';
+		$input['mobile_critical_css_enabled'] = ! empty( $input['mobile_critical_css_enabled'] ) ? 1 : 0;
 
 		// Database options.
 		$input['database_revisions']          = ! empty( $input['database_revisions'] ) ? 1 : 0;

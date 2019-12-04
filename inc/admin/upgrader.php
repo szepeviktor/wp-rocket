@@ -185,6 +185,7 @@ function rocket_first_install() {
 				'defer_all_js'                => 0,
 				'defer_all_js_safe'           => 1,
 				'async_css'                   => 0,
+				'mobile_critical_css_enabled' => 1,
 				'critical_css'                => '',
 				'lazyload'                    => 0,
 				'lazyload_iframes'            => 0,
@@ -445,6 +446,16 @@ function rocket_new_upgrade( $wp_rocket_version, $actual_version ) {
 
 	if ( version_compare( $actual_version, '3.4.0.1', '<' ) ) {
 		( new WP_Rocket\Subscriber\Plugin\Capabilities_Subscriber() )->add_rocket_capabilities();
+	}
+
+	if ( version_compare( $actual_version, '3.5', '<' ) ) {
+		if ( get_rocket_option( 'cache_mobile' ) && get_rocket_option( 'do_caching_mobile_files' ) && get_rocket_option( 'async_css' ) && get_rocket_option( 'mobile_critical_css_enabled' ) ) {
+			/**
+			 * When upgrading, don’t change the current critical CSS behavior if "dedicated mobile cache" + "async CSS" are enabled:
+			 * continue to deliver the same thing instead of critical CSS contents dedicated to mobile.
+			 */
+			update_rocket_option( 'mobile_critical_css_enabled', 0 );
+		}
 	}
 }
 add_action( 'wp_rocket_upgrade', 'rocket_new_upgrade', 10, 2 );
