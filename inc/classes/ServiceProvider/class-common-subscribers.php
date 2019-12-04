@@ -24,6 +24,7 @@ class Common_Subscribers extends AbstractServiceProvider {
 		'heartbeat_subscriber',
 		'db_optimization_subscriber',
 		'critical_css_generation',
+		'mobile_detect',
 		'critical_css',
 		'critical_css_subscriber',
 		'cache_dir_size_check_subscriber',
@@ -51,8 +52,10 @@ class Common_Subscribers extends AbstractServiceProvider {
 			->withArgument( $this->getContainer()->get( 'db_optimization' ) )
 			->withArgument( $this->getContainer()->get( 'options' ) );
 		$this->getContainer()->add( 'critical_css_generation', 'WP_Rocket\Optimization\CSS\Critical_CSS_Generation' );
+		$this->getContainer()->add( 'mobile_detect', 'Rocket_Mobile_Detect' );
 		$this->getContainer()->add( 'critical_css', 'WP_Rocket\Optimization\CSS\Critical_CSS' )
-			->withArgument( $this->getContainer()->get( 'critical_css_generation' ) );
+			->withArgument( $this->getContainer()->get( 'critical_css_generation' ) )
+			->withArgument( $this->getContainer()->get( 'mobile_detect' ) );
 		$this->getContainer()->share( 'critical_css_subscriber', 'WP_Rocket\Subscriber\Optimization\Critical_CSS_Subscriber' )
 			->withArgument( $this->getContainer()->get( 'critical_css' ) )
 			->withArgument( $this->getContainer()->get( 'options' ) );

@@ -59,7 +59,6 @@
 			"inc/vendors/classes"
 		],
 		"exclude-from-classmap": [
-			"inc/vendors/classes/class-rocket-mobile-detect.php",
 			"inc/classes/class-wp-rocket-requirements-check.php"
 		],
 		"files": [
