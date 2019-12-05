@@ -437,7 +437,7 @@ class Critical_CSS {
 			return $this->mobile_critical_css;
 		}
 
-		$this->mobile_critical_css = get_rocket_option( 'cache_mobile' ) && get_rocket_option( 'do_caching_mobile_files' ) && get_rocket_option( 'mobile_critical_css_enabled' );
+		$this->mobile_critical_css = get_rocket_option( 'cache_mobile' ) && get_rocket_option( 'do_caching_mobile_files' ) && get_rocket_option( 'async_css' ) && get_rocket_option( 'mobile_critical_css_enabled' );
 		return $this->mobile_critical_css;
 	}
 
@@ -460,13 +460,13 @@ class Critical_CSS {
 		/** This filter is documented in inc/functions/files.php */
 		$cache_mobile_files_tablet = apply_filters( 'rocket_cache_mobile_files_tablet', 'desktop' );
 
-		if ( 'desktop' === $cache_mobile_files_tablet && $this->mobile_detect->isMobile() && ! $this->mobile_detect->isTablet() ) {
-			$this->is_mobile = true;
+		if ( 'mobile' === $cache_mobile_files_tablet ) {
+			$this->is_mobile = $this->mobile_detect->isMobile() || $this->mobile_detect->isTablet();
 			return $this->is_mobile;
 		}
 
-		if ( 'mobile' === $cache_mobile_files_tablet && ( $this->mobile_detect->isMobile() || $this->mobile_detect->isTablet() ) ) {
-			$this->is_mobile = true;
+		if ( 'desktop' === $cache_mobile_files_tablet ) {
+			$this->is_mobile = $this->mobile_detect->isMobile() && ! $this->mobile_detect->isTablet();
 			return $this->is_mobile;
 		}
 
