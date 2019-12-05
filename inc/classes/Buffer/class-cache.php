@@ -549,13 +549,7 @@ class Cache extends Abstract_Buffer {
 	 * @return string
 	 */
 	private function maybe_mobile_filename( $filename ) {
-		$cache_mobile_files_tablet = $this->config->get_config( 'cache_mobile_files_tablet' );
-
 		if ( ! ( $this->config->get_config( 'cache_mobile' ) && $this->config->get_config( 'do_caching_mobile_files' ) ) ) {
-			return $filename;
-		}
-
-		if ( ! $cache_mobile_files_tablet ) {
 			return $filename;
 		}
 
@@ -563,10 +557,15 @@ class Cache extends Abstract_Buffer {
 			return $filename;
 		}
 
-		$detect = new \Rocket_Mobile_Detect();
+		$mobile_detect             = new \Rocket_Mobile_Detect();
+		$cache_mobile_files_tablet = $this->config->get_config( 'cache_mobile_files_tablet' );
 
-		if ( $detect->isMobile() && ! $detect->isTablet() && 'desktop' === $cache_mobile_files_tablet || ( $detect->isMobile() || $detect->isTablet() ) && 'mobile' === $cache_mobile_files_tablet ) {
-				return $filename .= '-mobile';
+		if ( 'mobile' === $cache_mobile_files_tablet ) {
+			return $filename .= $mobile_detect->isMobile() || $mobile_detect->isTablet() ? '-mobile' : '';
+		}
+
+		if ( 'desktop' === $cache_mobile_files_tablet ) {
+			return $filename .= $mobile_detect->isMobile() && ! $mobile_detect->isTablet() ? '-mobile' : '';
 		}
 
 		return $filename;
