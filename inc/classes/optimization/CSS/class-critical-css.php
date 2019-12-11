@@ -356,7 +356,7 @@ class Critical_CSS {
 	/**
 	 * Sets the items dedicated to mobile devices, for which we generate critical CSS.
 	 *
-	 * @since  3.5
+	 * @since  3.6
 	 * @access private
 	 * @author Grégory Viguier
 	 */
@@ -381,7 +381,7 @@ class Critical_CSS {
 	 * Determines if critical CSS is available for the current page.
 	 *
 	 * @since  2.11
-	 * @since  3.5 Added $is_mobile parameter.
+	 * @since  3.6 Added $is_mobile parameter.
 	 * @access public
 	 * @author Remy Perona
 	 *
@@ -426,7 +426,7 @@ class Critical_CSS {
 	/**
 	 * Tells if we should use a dedicated critical CSS file.
 	 *
-	 * @since  3.5
+	 * @since  3.6
 	 * @access public
 	 * @author Grégory Viguier
 	 *
@@ -445,7 +445,7 @@ class Critical_CSS {
 	 * Tells if the current user uses a mobile browser.
 	 * This is tightly coupled with desktop/mobile cache files.
 	 *
-	 * @since  3.5
+	 * @since  3.6
 	 * @access public
 	 * @see    \WP_Rocket\Buffer\Cache->maybe_mobile_filename()
 	 * @author Grégory Viguier
