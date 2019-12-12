@@ -448,7 +448,7 @@ function rocket_new_upgrade( $wp_rocket_version, $actual_version ) {
 		( new WP_Rocket\Subscriber\Plugin\Capabilities_Subscriber() )->add_rocket_capabilities();
 	}
 
-	if ( version_compare( $actual_version, '3.5', '<' ) ) {
+	if ( version_compare( $actual_version, '3.6', '<' ) ) {
 		if ( get_rocket_option( 'cache_mobile' ) && get_rocket_option( 'do_caching_mobile_files' ) && get_rocket_option( 'async_css' ) && get_rocket_option( 'mobile_critical_css_enabled' ) ) {
 			/**
 			 * When upgrading, don’t change the current critical CSS behavior if "dedicated mobile cache" + "async CSS" are enabled:
