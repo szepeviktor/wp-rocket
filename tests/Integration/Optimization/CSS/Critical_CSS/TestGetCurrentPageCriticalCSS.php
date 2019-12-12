@@ -3,7 +3,7 @@ namespace WP_Rocket\Tests\Integration\Optimize\CSS\Critical_CSS;
 
 use WP_Rocket\Optimization\CSS\Critical_CSS;
 use WP_Rocket\Optimization\CSS\Critical_CSS_Generation;
-use PHPUnit\Framework\TestCase;
+use WP_Rocket\Tests\Integration\TestCase;
 
 class TestGetCurrentPageCriticalCSS extends TestCase {
 	/**
