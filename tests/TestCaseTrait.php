@@ -7,7 +7,55 @@
 
 namespace WP_Rocket\Tests;
 
+use org\bovigo\vfs\vfsStream;
+
 trait TestCaseTrait {
+
+	/**
+	 * Instance of the virtual cache filesystem.
+	 *
+	 * @var vfsStreamDirectory
+	 */
+	protected $cacheFilesystem;
+
+	/**
+	 * Starting structure of the `wp-content/cache/` filesystem.
+	 *
+	 * @var array
+	 */
+	protected $cacheStartingFilesystemStructure = [
+		'busting'      => [
+			'1' => [],
+		],
+		'critical-css' => [],
+		'min'          => [],
+		'wp-rocket'    => [
+			'index.html' => '',
+		],
+	];
+
+	/**
+	 * Gets the absolute path to the requested virtual cache directory. Wrapper for `vfsStream::url( $path )`.
+	 *
+	 * @param string $path Path to get.
+	 *
+	 * @return string Absolute path for the virtual directory.
+	 */
+	public static function getCacheDir( $path ) {
+		return vfsStream::url( $path );
+	}
+
+	/**
+	 * Sets/restores the virtual "wp-content/cache" filesystem to its starting structure.
+	 */
+	protected function setVirtualFilesystemToStartingStructure() {
+		$this->cacheFilesystem = vfsStream::setup(
+			'cache',
+			0755,
+			$this->cacheStartingFilesystemStructure
+		);
+	}
+
 	/**
 	 * Get reflective access to the private/protected method.
 	 *

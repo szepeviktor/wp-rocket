@@ -28,5 +28,8 @@ class TestCase extends WP_UnitTestCase {
 	public function tearDown() {
 		Monkey\tearDown();
 		parent::tearDown();
+
+		// Restores the virtual filesystem back to the starting structure.
+		$this->setVirtualFilesystemToStartingStructure();
 	}
 }
